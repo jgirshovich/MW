@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="color-scheme" content="light dark" />
+  <link rel="icon" href="data:," />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Lilita+One&display=swap" rel="stylesheet">
+  <title>Math War</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #18202b;
+      --muted: #596575;
+      --paper: #f7f8fa;
+      --surface: #ffffff;
+      --line: #dce1e8;
+      --red: #d83b46;
+      --red-deep: #a9202d;
+      --red-soft: #ffe6e8;
+      --blue: #146bb3;
+      --blue-deep: #0b4d84;
+      --blue-soft: #e2f1ff;
+      --gold: #f4b942;
+      --green: #16785a;
+      --green-soft: #def6ec;
+      --shadow: 0 14px 35px rgba(28, 39, 55, .13);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #f4f7fb;
+        --muted: #b8c2cf;
+        --paper: #11161d;
+        --surface: #1b222c;
+        --line: #35404d;
+        --red: #f05c66;
+        --red-deep: #ff9299;
+        --red-soft: #401e24;
+        --blue: #55a9ed;
+        --blue-deep: #9bd2ff;
+        --blue-soft: #17314a;
+        --gold: #f2c45f;
+        --green: #57c7a1;
+        --green-soft: #173c32;
+        --shadow: 0 18px 40px rgba(0, 0, 0, .32);
+      }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.45;
+      -webkit-tap-highlight-color: transparent;
+      overscroll-behavior: none;
+    }
+    button, input { font: inherit; }
+    button { touch-action: manipulation; }
+    button:focus-visible, input:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+    .screen { display: none; min-height: 100dvh; }
+    .screen.active { display: block; }
+    .home-shell { width: min(1080px, calc(100% - 32px)); margin: 0 auto; padding: max(28px, env(safe-area-inset-top)) 0 48px; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(320px, .72fr); gap: clamp(28px, 5vw, 72px); align-items: center; min-height: min(68vh, 660px); }
+    .hero-copy h1 { font-family: "Lilita One", sans-serif; font-weight: 400; font-size: clamp(50px, 8vw, 92px); line-height: .93; letter-spacing: -.02em; margin: 0 0 22px; max-width: 720px; }
+    .hero-copy h1 span { color: var(--red); }
+    .hero-copy p { font-size: clamp(19px, 2.2vw, 26px); max-width: 640px; color: var(--muted); margin: 0; }
+    .setup-card { background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); padding: 26px; border-radius: 28px 10px 28px 10px; }
+    .setup-card h2, .practice h2 { font-family: "Lilita One", sans-serif; font-weight: 400; font-size: 32px; margin: 0 0 18px; }
+    .name-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 7px; color: var(--muted); }
+    input { width: 100%; min-height: 50px; border: 2px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--paper); color: var(--ink); font-size: 18px; }
+    fieldset { border: 0; padding: 0; margin: 20px 0 0; }
+    legend { font-weight: 700; margin-bottom: 9px; }
+    .choice-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .choice-row.two { grid-template-columns: 1fr 1fr; }
+    .choice { min-height: 48px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font-weight: 700; }
+    .choice.selected { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+    .primary { width: 100%; min-height: 58px; border: 0; border-radius: 13px; background: var(--ink); color: var(--paper); font-weight: 700; font-size: 20px; margin-top: 22px; box-shadow: 0 5px 0 color-mix(in srgb, var(--ink), black 28%); }
+    .primary:active { transform: translateY(3px); box-shadow: 0 2px 0 color-mix(in srgb, var(--ink), black 28%); }
+    .how { margin: 12px 0 0; text-align: center; color: var(--muted); font-size: 14px; }
+    .practice { margin-top: 36px; padding-top: 30px; border-top: 2px dashed var(--line); }
+    .practice-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; }
+    .practice-feature { background: var(--green-soft); border-radius: 12px 26px 12px 26px; padding: 24px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 20px; }
+    .practice-feature h3, .idea-list h3 { margin: 0 0 7px; font-size: 22px; }
+    .practice-feature p { margin: 0; color: var(--muted); }
+    .mini-launch { min-height: 50px; padding: 0 22px; border: 0; border-radius: 10px; background: var(--green); color: #fff; font-weight: 700; }
+    .idea-list { border: 1px solid var(--line); background: var(--surface); padding: 22px; border-radius: 22px 8px 22px 8px; }
+    .idea-list ul { padding-left: 21px; margin: 10px 0 0; }
+    .idea-list li + li { margin-top: 8px; }
+
+    /* Shared game */
+    .game-screen { display: none; height: 100dvh; overflow: hidden; background: var(--paper); }
+    .game-screen.active { display: grid; grid-template-rows: auto auto 1fr; }
+    .game-top { min-height: 62px; display: flex; align-items: center; justify-content: space-between; padding: max(10px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left)); border-bottom: 1px solid var(--line); background: var(--surface); }
+    .ghost { min-height: 42px; padding: 0 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--ink); font-weight: 700; }
+    .round-label { font-weight: 700; font-variant-numeric: tabular-nums; }
+    .scoreboard { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; padding: 10px 16px; align-items: center; background: var(--surface); }
+    .score { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+    .score.right { justify-content: flex-end; }
+    .score-name { font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .score-num { font-family: "Lilita One", sans-serif; font-size: 34px; line-height: 1; }
+    .score.left .score-num { color: var(--red); }
+    .score.right .score-num { color: var(--blue); }
+    .pot { background: var(--gold); color: #322300; border-radius: 999px; font-weight: 700; font-size: 14px; padding: 5px 11px; white-space: nowrap; }
+    .arena { position: relative; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; }
+    .player-zone { position: relative; border: 0; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; padding: 20px; cursor: pointer; }
+    .player-zone.red { background: var(--red); }
+    .player-zone.blue { background: var(--blue); }
+    .player-zone:disabled { cursor: default; }
+    .zone-label { display: block; min-height: 72px; padding: 17px 18px; border: 3px solid rgba(255,255,255,.84); background: rgba(0,0,0,.16); color: #fff; border-radius: 14px; font-family: "Lilita One", sans-serif; font-size: clamp(25px, 4vw, 46px); text-align: center; box-shadow: 0 6px 0 rgba(0,0,0,.17); }
+    .player-zone:not(:disabled):active .zone-label { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,.17); }
+    .stage { position: absolute; z-index: 3; top: 45%; left: 50%; transform: translate(-50%, -50%); width: min(590px, 70vw); pointer-events: none; }
+    .cards { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: clamp(12px, 3vw, 28px); }
+    .playing-card { aspect-ratio: .72; border-radius: 15px; background: #fff; color: #15202d; border: 5px solid #fff; box-shadow: 0 14px 30px rgba(0,0,0,.28); display: grid; place-items: center; font-family: "Lilita One", sans-serif; font-size: clamp(62px, 10vw, 118px); position: relative; }
+    .playing-card::before { content: attr(data-suit); position: absolute; top: 9px; left: 12px; font: 700 22px/1 "Atkinson Hyperlegible", sans-serif; }
+    .playing-card.left { outline: 5px solid var(--red-deep); }
+    .playing-card.right { outline: 5px solid var(--blue-deep); }
+    .operator { width: clamp(48px, 8vw, 76px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: var(--gold); color: #322300; font-family: "Lilita One", sans-serif; font-size: clamp(36px, 6vw, 60px); box-shadow: 0 8px 18px rgba(0,0,0,.2); }
+    .card-back { background: #fff repeating-linear-gradient(45deg, #e5e9ee 0 8px, #fff 8px 16px); color: transparent; }
+    .card-back::after { content: "?"; color: var(--ink); font-size: 78px; }
+    .prompt { width: max-content; max-width: 92vw; margin: 18px auto 0; background: var(--surface); color: var(--ink); border: 2px solid var(--line); border-radius: 999px; padding: 10px 18px; font-weight: 700; text-align: center; box-shadow: var(--shadow); }
+    .center-action { pointer-events: auto; display: block; margin: 18px auto 0; min-width: 190px; min-height: 58px; padding: 0 24px; border: 0; border-radius: 12px; background: var(--gold); color: #322300; font-weight: 700; font-size: 20px; box-shadow: 0 5px 0 #b47c16; }
+    .center-action:active { transform: translateY(3px); box-shadow: 0 2px 0 #b47c16; }
+    .judge { display: none; pointer-events: auto; margin: 16px auto 0; width: min(520px, 88vw); padding: 14px; border-radius: 16px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); text-align: center; border: 3px solid var(--gold); }
+    .judge.show { display: block; }
+    .judge p { margin: 0 0 11px; font-weight: 700; font-size: 18px; }
+    .answer { font-family: "Lilita One", sans-serif; font-size: 36px; color: var(--green); }
+    .judge-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .judge-actions button { min-height: 52px; border: 0; border-radius: 9px; font-weight: 700; }
+    .yes { background: var(--green); color: #fff; }
+    .no { background: var(--line); color: var(--ink); }
+    .winner-banner { display: none; pointer-events: auto; margin: 16px auto 0; width: min(520px, 88vw); background: var(--surface); color: var(--ink); border-radius: 14px; padding: 14px; text-align: center; box-shadow: var(--shadow); }
+    .winner-banner.show { display: block; }
+    .winner-banner strong { display: block; font-family: "Lilita One", sans-serif; font-size: 27px; margin-bottom: 9px; }
+    .next-btn { min-height: 50px; width: 100%; border: 0; border-radius: 9px; background: var(--ink); color: var(--paper); font-weight: 700; }
+
+    /* End and bonds */
+    .panel-screen { padding: max(24px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) max(30px, env(safe-area-inset-bottom)) max(18px, env(safe-area-inset-left)); }
+    .panel-wrap { width: min(760px, 100%); margin: 0 auto; }
+    .back-row { margin-bottom: 22px; }
+    .end-card { background: var(--surface); border: 1px solid var(--line); border-radius: 30px 10px; padding: clamp(28px, 6vw, 54px); text-align: center; box-shadow: var(--shadow); }
+    .burst { width: 92px; height: 92px; display: grid; place-items: center; margin: 0 auto 14px; background: var(--gold); color: #322300; clip-path: polygon(50% 0,61% 22%,84% 9%,78% 35%,100% 50%,78% 64%,88% 90%,61% 78%,50% 100%,39% 78%,12% 90%,22% 64%,0 50%,22% 35%,16% 9%,39% 22%); font-family: "Lilita One", sans-serif; font-size: 34px; }
+    .end-card h2 { font-family: "Lilita One", sans-serif; font-weight: 400; font-size: clamp(40px, 8vw, 68px); margin: 0 0 8px; }
+    .final-score { font-size: 25px; color: var(--muted); margin: 0 0 25px; }
+    .end-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .end-actions button { min-height: 56px; border-radius: 10px; font-weight: 700; }
+    .end-actions .again { border: 0; background: var(--ink); color: var(--paper); }
+    .end-actions .home { border: 2px solid var(--line); background: var(--surface); color: var(--ink); }
+    .bonds-head { text-align: center; margin-bottom: 24px; }
+    .bonds-head h2 { font-family: "Lilita One", sans-serif; font-size: clamp(40px, 7vw, 62px); font-weight: 400; margin: 4px 0; }
+    .bonds-head p { margin: 0; color: var(--muted); }
+    .bonds-card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px 32px 16px 32px; padding: clamp(22px, 5vw, 42px); box-shadow: var(--shadow); }
+    .bonds-stats { display: flex; justify-content: space-between; font-weight: 700; color: var(--muted); }
+    .bond-equation { text-align: center; font-family: "Lilita One", sans-serif; font-size: clamp(54px, 11vw, 96px); line-height: 1; margin: clamp(30px, 8vh, 60px) 0; }
+    .bond-choices { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .bond-choice { min-height: 88px; border: 3px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); font-family: "Lilita One", sans-serif; font-size: 36px; }
+    .bond-choice.correct { background: var(--green); border-color: var(--green); color: #fff; }
+    .bond-choice.wrong { background: var(--red); border-color: var(--red); color: #fff; }
+    .bond-start { text-align: center; }
+    .bond-start p { color: var(--muted); max-width: 480px; margin: 0 auto 16px; }
+    .target-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 380px; margin: 0 auto; }
+    .target { min-height: 54px; border: 2px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); font-weight: 700; }
+    .target.selected { background: var(--green); border-color: var(--green); color: white; }
+    .bond-go { max-width: 380px; margin-inline: auto; background: var(--green); color: white; box-shadow: 0 5px 0 color-mix(in srgb, var(--green), black 25%); }
+    .bond-go:active { box-shadow: 0 2px 0 color-mix(in srgb, var(--green), black 25%); }
+    .bond-summary { display: none; text-align: center; }
+    .bond-summary.show { display: block; }
+    .bond-summary h3 { font-family: "Lilita One", sans-serif; font-size: 44px; font-weight: 400; margin: 0 0 6px; }
+    .bond-summary p { color: var(--muted); font-size: 22px; }
+
+    @media (max-width: 760px) {
+      .home-shell { width: min(100% - 24px, 560px); padding-top: 20px; }
+      .hero { grid-template-columns: 1fr; min-height: auto; gap: 26px; }
+      .hero-copy h1 { font-size: clamp(48px, 15vw, 74px); }
+      .hero-copy p { font-size: 19px; }
+      .setup-card { padding: 20px; }
+      .practice-grid { grid-template-columns: 1fr; }
+      .practice-feature { grid-template-columns: 1fr; }
+      .mini-launch { width: 100%; }
+      .scoreboard { gap: 6px; padding-inline: 10px; }
+      .score { gap: 6px; }
+      .score-num { font-size: 28px; }
+      .score-name { max-width: 85px; }
+      .pot { font-size: 12px; padding: 4px 8px; }
+      .player-zone { padding: 10px; }
+      .zone-label { min-height: 62px; padding: 12px 8px; font-size: 25px; }
+      .stage { width: min(500px, 82vw); top: 43%; }
+      .playing-card { font-size: clamp(58px, 17vw, 92px); }
+      .operator { width: 48px; font-size: 38px; }
+      .prompt { font-size: 15px; }
+      .bond-choices { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-height: 620px) and (orientation: landscape) {
+      .game-top { min-height: 50px; padding-top: 6px; }
+      .scoreboard { padding-block: 6px; }
+      .stage { top: 40%; width: min(430px, 62vw); }
+      .playing-card { max-height: 210px; font-size: 72px; }
+      .prompt { margin-top: 9px; padding-block: 6px; }
+      .center-action, .judge, .winner-banner { margin-top: 9px; }
+      .player-zone { padding: 10px 18px; }
+      .zone-label { min-height: 56px; padding: 9px; font-size: 27px; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .playing-card.flip { animation: flipIn .36s ease-out; }
+      @keyframes flipIn { from { transform: rotateY(88deg) scale(.9); } to { transform: rotateY(0) scale(1); } }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section id="home" class="screen active" aria-labelledby="homeTitle">
+      <div class="home-shell">
+        <div class="hero">
+          <div class="hero-copy">
+            <h1 id="homeTitle">Fast facts.<br><span>Faster fingers.</span></h1>
+            <p>Two students, one iPad, and a race to solve each card pair out loud—without counting on fingers.</p>
+          </div>
+          <div class="setup-card">
+            <h2>Set up a match</h2>
+            <div class="name-grid">
+              <div><label for="p1">Left player</label><input id="p1" maxlength="14" value="Player 1" autocomplete="off"></div>
+              <div><label for="p2">Right player</label><input id="p2" maxlength="14" value="Player 2" autocomplete="off"></div>
+            </div>
+            <fieldset>
+              <legend>Math operation</legend>
+              <div class="choice-row" id="operationChoices">
+                <button class="choice selected" data-value="add" type="button">Add +</button>
+                <button class="choice" data-value="subtract" type="button">Subtract −</button>
+                <button class="choice" data-value="multiply" type="button">Multiply ×</button>
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Match length</legend>
+              <div class="choice-row two" id="lengthChoices">
+                <button class="choice selected" data-value="10" type="button">Quick · 10 rounds</button>
+                <button class="choice" data-value="20" type="button">Full · 20 rounds</button>
+              </div>
+            </fieldset>
+            <button id="startGame" class="primary" type="button">Deal the cards</button>
+            <p class="how">Flip → say the answer → tap your side first</p>
+          </div>
+        </div>
+
+        <section class="practice" aria-labelledby="practiceTitle">
+          <h2 id="practiceTitle">Build number sense between matches</h2>
+          <div class="practice-grid">
+            <article class="practice-feature">
+              <div>
+                <h3>Number Bonds Blitz</h3>
+                <p>See one addend and instantly choose its partner to make 10 or 20. A 45-second solo station is included.</p>
+              </div>
+              <button id="openBonds" class="mini-launch" type="button">Play Bonds Blitz</button>
+            </article>
+            <aside class="idea-list">
+              <h3>Three more classroom games</h3>
+              <ul>
+                <li><strong>Closest to 100:</strong> add flipped cards mentally; stop before going over.</li>
+                <li><strong>Target Number:</strong> combine four cards with +, −, or × to hit a target.</li>
+                <li><strong>Beat the Clock:</strong> answer as many flash facts as possible in one minute.</li>
+              </ul>
+            </aside>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="game" class="game-screen" aria-label="Math War match">
+      <header class="game-top">
+        <button id="quitGame" class="ghost" type="button">← Setup</button>
+        <div id="roundLabel" class="round-label">Round 1 of 10</div>
+        <button id="soundToggle" class="ghost" type="button" aria-pressed="true">Sound on</button>
+      </header>
+      <div class="scoreboard">
+        <div class="score left"><span id="leftScoreName" class="score-name">Player 1</span><span id="leftScore" class="score-num">0</span></div>
+        <div id="pot" class="pot">2 cards up for grabs</div>
+        <div class="score right"><span id="rightScore" class="score-num">0</span><span id="rightScoreName" class="score-name">Player 2</span></div>
+      </div>
+      <div class="arena">
+        <button id="buzzLeft" class="player-zone red" type="button" disabled aria-label="Player 1 buzz in"><span class="zone-label">Tap when you know it</span></button>
+        <button id="buzzRight" class="player-zone blue" type="button" disabled aria-label="Player 2 buzz in"><span class="zone-label">Tap when you know it</span></button>
+        <div class="stage">
+          <div class="cards">
+            <div id="cardLeft" class="playing-card left card-back" data-suit="◆">?</div>
+            <div id="operator" class="operator">+</div>
+            <div id="cardRight" class="playing-card right card-back" data-suit="●">?</div>
+          </div>
+          <div id="prompt" class="prompt" aria-live="polite">Ready? Flip both cards.</div>
+          <button id="flipCards" class="center-action" type="button">Flip cards</button>
+          <div id="judge" class="judge" aria-live="assertive">
+            <p><span id="buzzName">Player 1</span> buzzed first. The answer is <span id="answer" class="answer">12</span>.</p>
+            <div class="judge-actions">
+              <button id="correctBtn" class="yes" type="button">They said it!</button>
+              <button id="wrongBtn" class="no" type="button">Not quite</button>
+            </div>
+          </div>
+          <div id="winnerBanner" class="winner-banner" aria-live="polite">
+            <strong id="roundWinner">Point to Player 1!</strong>
+            <button id="nextRound" class="next-btn" type="button">Next round</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="end" class="screen panel-screen" aria-labelledby="endTitle">
+      <div class="panel-wrap">
+        <div class="end-card">
+          <div class="burst">WIN!</div>
+          <h2 id="endTitle">Player 1 wins!</h2>
+          <p id="finalScore" class="final-score">12 cards to 8</p>
+          <div class="end-actions">
+            <button id="rematch" class="again" type="button">Play a rematch</button>
+            <button id="endHome" class="home" type="button">Change setup</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="bonds" class="screen panel-screen" aria-labelledby="bondsTitle">
+      <div class="panel-wrap">
+        <div class="back-row"><button id="bondsHome" class="ghost" type="button">← Back</button></div>
+        <div class="bonds-head">
+          <h2 id="bondsTitle">Number Bonds Blitz</h2>
+          <p>Know the missing partner without counting.</p>
+        </div>
+        <div class="bonds-card">
+          <div id="bondStart" class="bond-start">
+            <p>Choose a target. You have 45 seconds to solve as many missing-number facts as you can.</p>
+            <div class="target-row" id="targetChoices">
+              <button class="target selected" data-value="10" type="button">Make 10</button>
+              <button class="target" data-value="20" type="button">Make 20</button>
+            </div>
+            <button id="startBonds" class="primary bond-go" type="button">Start the clock</button>
+          </div>
+          <div id="bondPlay" hidden>
+            <div class="bonds-stats"><span>Score <strong id="bondScore">0</strong></span><span>Time <strong id="bondTime">45</strong>s</span><span>Streak <strong id="bondStreak">0</strong></span></div>
+            <div id="bondEquation" class="bond-equation">7 + ? = 10</div>
+            <div id="bondChoices" class="bond-choices"></div>
+          </div>
+          <div id="bondSummary" class="bond-summary">
+            <h3>Time!</h3>
+            <p>You solved <strong id="bondFinal">0</strong> number bonds.</p>
+            <button id="bondAgain" class="primary bond-go" type="button">Play again</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+      var screens = {
+        home: document.getElementById('home'),
+        game: document.getElementById('game'),
+        end: document.getElementById('end'),
+        bonds: document.getElementById('bonds')
+      };
+      var game = {
+        operation: 'add', rounds: 10, round: 1, leftName: 'Player 1', rightName: 'Player 2',
+        leftScore: 0, rightScore: 0, currentAnswer: 0, buzzer: null, state: 'ready', sound: true
+      };
+      var bond = { target: 10, score: 0, streak: 0, time: 45, answer: 0, timer: null, locked: false };
+      var audioCtx = null;
+
+      function showScreen(name) {
+        Object.keys(screens).forEach(function (key) { screens[key].classList.toggle('active', key === name); });
+        window.scrollTo(0, 0);
+      }
+      function choose(containerId, button, prop, obj) {
+        var wrap = document.getElementById(containerId);
+        wrap.querySelectorAll('button').forEach(function (b) { b.classList.remove('selected'); });
+        button.classList.add('selected');
+        obj[prop] = button.dataset.value;
+      }
+      document.getElementById('operationChoices').addEventListener('click', function (e) {
+        if (e.target.matches('button')) choose('operationChoices', e.target, 'operation', game);
+      });
+      document.getElementById('lengthChoices').addEventListener('click', function (e) {
+        if (e.target.matches('button')) { choose('lengthChoices', e.target, 'rounds', game); game.rounds = Number(game.rounds); }
+      });
+      document.getElementById('targetChoices').addEventListener('click', function (e) {
+        if (e.target.matches('button')) { choose('targetChoices', e.target, 'target', bond); bond.target = Number(bond.target); }
+      });
+
+      function tone(frequency, duration, type) {
+        if (!game.sound) return;
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          var oscillator = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          oscillator.type = type || 'sine';
+          oscillator.frequency.value = frequency;
+          gain.gain.setValueAtTime(.07, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + duration);
+          oscillator.connect(gain); gain.connect(audioCtx.destination);
+          oscillator.start(); oscillator.stop(audioCtx.currentTime + duration);
+        } catch (err) { /* sound is optional */ }
+      }
+      function safeName(value, fallback) { return value.trim().slice(0, 14) || fallback; }
+      function randomInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+
+      function beginGame(resetScores) {
+        game.leftName = safeName(document.getElementById('p1').value, 'Player 1');
+        game.rightName = safeName(document.getElementById('p2').value, 'Player 2');
+        game.round = 1;
+        if (resetScores !== false) { game.leftScore = 0; game.rightScore = 0; }
+        document.getElementById('leftScoreName').textContent = game.leftName;
+        document.getElementById('rightScoreName').textContent = game.rightName;
+        document.getElementById('buzzLeft').setAttribute('aria-label', game.leftName + ' buzz in');
+        document.getElementById('buzzRight').setAttribute('aria-label', game.rightName + ' buzz in');
+        updateScore();
+        prepareRound();
+        showScreen('game');
+      }
+      function updateScore() {
+        document.getElementById('leftScore').textContent = game.leftScore;
+        document.getElementById('rightScore').textContent = game.rightScore;
+        document.getElementById('roundLabel').textContent = 'Round ' + game.round + ' of ' + game.rounds;
+      }
+      function setCards(back) {
+        var cards = [document.getElementById('cardLeft'), document.getElementById('cardRight')];
+        cards.forEach(function (card) {
+          card.classList.toggle('card-back', back);
+          card.classList.remove('flip');
+          if (back) card.textContent = '?';
+        });
+      }
+      function prepareRound() {
+        game.state = 'ready'; game.buzzer = null;
+        setCards(true);
+        document.getElementById('flipCards').hidden = false;
+        document.getElementById('judge').classList.remove('show');
+        document.getElementById('winnerBanner').classList.remove('show');
+        document.getElementById('prompt').textContent = 'Ready? Flip both cards.';
+        document.getElementById('buzzLeft').disabled = true;
+        document.getElementById('buzzRight').disabled = true;
+        document.getElementById('buzzLeft').querySelector('span').textContent = 'Wait for the flip';
+        document.getElementById('buzzRight').querySelector('span').textContent = 'Wait for the flip';
+        updateScore();
+      }
+      function makeFact() {
+        var a, b, symbol;
+        if (game.operation === 'multiply') { a = randomInt(0, 12); b = randomInt(0, 12); symbol = '×'; game.currentAnswer = a * b; }
+        else if (game.operation === 'subtract') { a = randomInt(2, 20); b = randomInt(0, a); symbol = '−'; game.currentAnswer = a - b; }
+        else { a = randomInt(0, 12); b = randomInt(0, 12); symbol = '+'; game.currentAnswer = a + b; }
+        return { a: a, b: b, symbol: symbol };
+      }
+      function flip() {
+        if (game.state !== 'ready') return;
+        var fact = makeFact();
+        var left = document.getElementById('cardLeft');
+        var right = document.getElementById('cardRight');
+        left.classList.remove('card-back'); right.classList.remove('card-back');
+        left.textContent = fact.a; right.textContent = fact.b;
+        document.getElementById('operator').textContent = fact.symbol;
+        void left.offsetWidth; left.classList.add('flip'); right.classList.add('flip');
+        document.getElementById('flipCards').hidden = true;
+        document.getElementById('prompt').textContent = 'Say it out loud—then tap your side!';
+        document.getElementById('buzzLeft').disabled = false;
+        document.getElementById('buzzRight').disabled = false;
+        document.getElementById('buzzLeft').querySelector('span').textContent = game.leftName + ' · I know it!';
+        document.getElementById('buzzRight').querySelector('span').textContent = game.rightName + ' · I know it!';
+        game.state = 'live';
+        tone(440, .08, 'triangle');
+      }
+      function buzz(side) {
+        if (game.state !== 'live') return;
+        game.state = 'judging'; game.buzzer = side;
+        document.getElementById('buzzLeft').disabled = true;
+        document.getElementById('buzzRight').disabled = true;
+        var name = side === 'left' ? game.leftName : game.rightName;
+        document.getElementById('buzzName').textContent = name;
+        document.getElementById('answer').textContent = game.currentAnswer;
+        document.getElementById('prompt').textContent = name + ' buzzed first!';
+        document.getElementById('judge').classList.add('show');
+        tone(720, .16, 'square');
+      }
+      function award(correct) {
+        if (game.state !== 'judging') return;
+        var winner = correct ? game.buzzer : (game.buzzer === 'left' ? 'right' : 'left');
+        var name = winner === 'left' ? game.leftName : game.rightName;
+        if (winner === 'left') game.leftScore += 2; else game.rightScore += 2;
+        updateScore();
+        game.state = 'awarded';
+        document.getElementById('judge').classList.remove('show');
+        document.getElementById('roundWinner').textContent = correct ? '2 cards to ' + name + '!' : 'Not quite—2 cards to ' + name + '!';
+        document.getElementById('winnerBanner').classList.add('show');
+        document.getElementById('prompt').textContent = 'Answer: ' + game.currentAnswer;
+        document.getElementById('nextRound').textContent = game.round >= game.rounds ? 'See the winner' : 'Next round';
+        tone(correct ? 880 : 230, .22, correct ? 'sine' : 'sawtooth');
+      }
+      function nextRound() {
+        if (game.round >= game.rounds) return finishGame();
+        game.round += 1; prepareRound();
+      }
+      function finishGame() {
+        var title;
+        if (game.leftScore === game.rightScore) title = 'It’s a tie!';
+        else title = (game.leftScore > game.rightScore ? game.leftName : game.rightName) + ' wins!';
+        document.getElementById('endTitle').textContent = title;
+        document.getElementById('finalScore').textContent = game.leftName + ' ' + game.leftScore + ' cards · ' + game.rightName + ' ' + game.rightScore + ' cards';
+        showScreen('end');
+        tone(1047, .45, 'triangle');
+      }
+
+      document.getElementById('startGame').addEventListener('click', function () { beginGame(true); });
+      document.getElementById('flipCards').addEventListener('click', flip);
+      document.getElementById('buzzLeft').addEventListener('click', function () { buzz('left'); });
+      document.getElementById('buzzRight').addEventListener('click', function () { buzz('right'); });
+      document.getElementById('correctBtn').addEventListener('click', function () { award(true); });
+      document.getElementById('wrongBtn').addEventListener('click', function () { award(false); });
+      document.getElementById('nextRound').addEventListener('click', nextRound);
+      document.getElementById('quitGame').addEventListener('click', function () { showScreen('home'); });
+      document.getElementById('rematch').addEventListener('click', function () { beginGame(true); });
+      document.getElementById('endHome').addEventListener('click', function () { showScreen('home'); });
+      document.getElementById('soundToggle').addEventListener('click', function () {
+        game.sound = !game.sound;
+        this.textContent = game.sound ? 'Sound on' : 'Sound off';
+        this.setAttribute('aria-pressed', String(game.sound));
+        if (game.sound) tone(660, .08, 'sine');
+      });
+
+      function shuffledChoices(answer, target) {
+        var values = [answer];
+        while (values.length < 4) {
+          var candidate = Math.max(0, Math.min(target, answer + randomInt(-4, 4)));
+          if (values.indexOf(candidate) === -1) values.push(candidate);
+        }
+        for (var i = values.length - 1; i > 0; i--) {
+          var j = randomInt(0, i), tmp = values[i]; values[i] = values[j]; values[j] = tmp;
+        }
+        return values;
+      }
+      function newBond() {
+        bond.locked = false;
+        var shown = randomInt(0, bond.target);
+        bond.answer = bond.target - shown;
+        document.getElementById('bondEquation').textContent = shown + ' + ? = ' + bond.target;
+        var choices = document.getElementById('bondChoices');
+        choices.innerHTML = '';
+        shuffledChoices(bond.answer, bond.target).forEach(function (value) {
+          var btn = document.createElement('button');
+          btn.className = 'bond-choice'; btn.type = 'button'; btn.textContent = value; btn.dataset.value = value;
+          choices.appendChild(btn);
+        });
+      }
+      function updateBondStats() {
+        document.getElementById('bondScore').textContent = bond.score;
+        document.getElementById('bondStreak').textContent = bond.streak;
+        document.getElementById('bondTime').textContent = bond.time;
+      }
+      function startBonds() {
+        clearInterval(bond.timer);
+        bond.score = 0; bond.streak = 0; bond.time = 45; bond.locked = false;
+        document.getElementById('bondStart').hidden = true;
+        document.getElementById('bondPlay').hidden = false;
+        document.getElementById('bondSummary').classList.remove('show');
+        updateBondStats(); newBond();
+        bond.timer = setInterval(function () {
+          bond.time -= 1; updateBondStats();
+          if (bond.time <= 0) {
+            clearInterval(bond.timer); bond.locked = true;
+            document.getElementById('bondPlay').hidden = true;
+            document.getElementById('bondFinal').textContent = bond.score;
+            document.getElementById('bondSummary').classList.add('show');
+            tone(330, .35, 'triangle');
+          }
+        }, 1000);
+      }
+      document.getElementById('bondChoices').addEventListener('click', function (e) {
+        if (!e.target.matches('button') || bond.locked) return;
+        bond.locked = true;
+        var chosen = Number(e.target.dataset.value);
+        if (chosen === bond.answer) {
+          bond.score += 1; bond.streak += 1; e.target.classList.add('correct'); tone(840, .12, 'sine');
+        } else {
+          bond.streak = 0; e.target.classList.add('wrong');
+          this.querySelectorAll('button').forEach(function (b) { if (Number(b.dataset.value) === bond.answer) b.classList.add('correct'); });
+          tone(220, .16, 'sawtooth');
+        }
+        updateBondStats(); setTimeout(newBond, 420);
+      });
+      document.getElementById('openBonds').addEventListener('click', function () {
+        document.getElementById('bondStart').hidden = false;
+        document.getElementById('bondPlay').hidden = true;
+        document.getElementById('bondSummary').classList.remove('show');
+        showScreen('bonds');
+      });
+      document.getElementById('bondsHome').addEventListener('click', function () { clearInterval(bond.timer); showScreen('home'); });
+      document.getElementById('startBonds').addEventListener('click', startBonds);
+      document.getElementById('bondAgain').addEventListener('click', startBonds);
+    }());
+  </script>
+</body>
+</html>
